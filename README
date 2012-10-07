@@ -1,0 +1,44 @@
+README
+======
+
+Overview
+--------
+
+This set of code is the practice code I'm writing while going through the book
+THE WAY TO GO by by Ivo Balbaert.  I picked it up on the cheap as an ebook off
+of Amazon.
+
+I thought it might be interesting to keep a versioned repository of the code
+as I move through the very early stages of learning this language.  It could
+be fun to watch the growth of my own understanding of the language as I move 
+from zero to something in terms of my understanding of the language conventions
+and construction of applications using Go.
+
+Resources
+---------
+
+Some resoruces I'm using to enhance the journey here.
+
+'The Way to Go' amazon ebook http://amzn.to/R4hXdA
+
+GoLang Official Site http://golang.org/
+
+Why Go?
+-------
+
+There are a number of brief reasons I'm wanting to learn Go and I thought 
+I'd list them her bullet time style.
+
+* I think it's likely to grow in the field and I want some kind of first hand
+  knowlege about the language.
+
+* The philosophy of the language itself it interesting enough to want to know
+  and I think it'll be a great exercise in language theory for me.
+
+* I think the design of the language is likely to be useful in an increasing
+  concurrent and cloud based world.
+
+* I want a fast, multi-threaded language option on my toolbox that isn't
+  Java (bloated and tired) and isn't C (Complex and tired).
+
+* Why the hell not. 
