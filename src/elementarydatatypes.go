@@ -23,11 +23,66 @@ NOTE THIS IS PACKAGE LEVEL VISIBILITY
 
 import fm "fmt" // alias a package import like so
 
+/* 
+TYPES
+
+These are elementary (primative) or structured (struct, array, slice, map,
+channel, etc)
+*/
+// As with import can be single line or multi-line function call.
+type (
+	IZ int 
+	//FZ float
+	STR string
+)
+type T struct{}
+
+// Constants and vars get dec'd too.
+var v int = 5
+const c = "C"
+const (
+	aI = iota
+	bI = iota
+	cI = iota
+)
+
+/*
+INIT
+*/
+func init() {
+}
+
+// main initiates all other functions in this file.
 func main() {
 	fm.Println("hello, world from private main!") // Uppercase so it's public
 	Main()
+	CastStuff()
+	TestIota()
 }
 
-func Main() {
+/*
+FUNCTIONS
+
+These can have a return type as well so functions are said to be typed.
+Functions with multiple return types are separated by commas.
+*/
+
+// Main just shows me that func are case senastive too.
+func Main() { 
 	fm.Println("Hello, world from visible main!")
+}
+
+func CastStuff() {
+	a := 5.0
+	fm.Printf("CastStuff says a is %f\n", a)	
+	b := int(a)
+	fm.Printf("CastStuff says a is %f and b is %d\n", a, b)
+}
+
+// TestIota is showing me an example of how the iota var works, which confuses me.
+func TestIota() {
+	// Sweet jesus I'm sloppy and repeating myself
+	fm.Printf("TestIota says aI is %d\n", aI)
+	fm.Printf("TestIota says bI is %d\n", bI)
+	fm.Printf("TestIota says cI is %d\n", cI)
 }
