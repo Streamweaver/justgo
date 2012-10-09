@@ -21,7 +21,10 @@ Lowercase indicates visivility inside the package only.
 NOTE THIS IS PACKAGE LEVEL VISIBILITY
 */
 
-import fm "fmt" // alias a package import like so
+import (
+	fm "fmt" // alias a package import like so
+	"os"
+)
 
 /* 
 TYPES
@@ -58,6 +61,7 @@ func main() {
 	Main()
 	CastStuff()
 	TestIota()
+	ReadGoSystmeInfo()
 }
 
 /*
@@ -85,4 +89,12 @@ func TestIota() {
 	fm.Printf("TestIota says aI is %d\n", aI)
 	fm.Printf("TestIota says bI is %d\n", bI)
 	fm.Printf("TestIota says cI is %d\n", cI)
+}
+
+func ReadGoSystmeInfo() {
+	var goos string = os.Getenv("GOOS")
+	fm.Printf("The OS is %s\n", goos)
+	path := os.Getenv("PATH") // shorthand var dec
+	fm.Printf("Path is %s\n", path)
+	fm.Printf("Go root is %s\n", os.Getenv("GOROOT"))
 }
