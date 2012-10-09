@@ -1,6 +1,6 @@
 // file elementarydatatypes.go
 // PACKAGE DEC
-package main // write package names in lowercase letters.
+package chapfour // write package names in lowercase letters.
 // Expectations about package naming from java is screwnig
 // me up here.  don't think I can have multiple main decs
 
@@ -97,4 +97,5 @@ func ReadGoSystmeInfo() {
 	path := os.Getenv("PATH") // shorthand var dec
 	fm.Printf("Path is %s\n", path)
 	fm.Printf("Go root is %s\n", os.Getenv("GOROOT"))
+	fm.Printf("GoPath is %s\n", os.Getenv("GOPATH"))
 }
