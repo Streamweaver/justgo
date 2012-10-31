@@ -1,2 +1,5 @@
+# File extensions to ignore
 *.o
 *.a
+*.so
+*.exe
