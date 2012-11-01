@@ -7,3 +7,4 @@
 # Directories to Ignore
 bin/
 pkg/
+github.com/
