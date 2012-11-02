@@ -6,10 +6,22 @@ import (
 	"net"
 )
 
+func NewUser(i int, c *net.TCPConn) *User {
+	return &User{i, c, time.Now()}
+}
+
 type User struct {
 	Id int
-	LastConnection time.Date
-	conn *net.TCPConn
+	Conn *net.TCPConn
+	Spawned time.Time
+}
+
+func (u *User) Write(s string) {
+	u.Conn.Write([]byte(s))
+}
+
+func (u *User) Read() {
+	// Something to read text sent?
 }
 
 var UserPool map[int]*User

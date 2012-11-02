@@ -9,6 +9,7 @@ import (
 	"log"
 	"io"
 	"net"
+	"pogomud/user"
 )
 
 type ServerObject struct {
@@ -70,20 +71,21 @@ func (server *ServerObject)Start() {
 	// Accept connections here.
 	for {
 		// Wait for a connection. 
-		conn, err := l.Accept()
+		conn, err := l.AcceptTCP()
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
-		conn.Write([]byte("Welcome to " + server.Name + "!\n"))
-		fmt.Printf("Connection made from %s\n", conn.RemoteAddr())
+		u := user.NewUser(1, conn)
+		u.Write("Welcome to " + server.Name + "!\n")
+		fmt.Printf("Connection for user %d made from %s\n", u.Id, u.Conn.RemoteAddr())
 
 		// Spawn a new connection and go back to listening.
-		go func(c net.Conn) {
+		go func(u *user.User) {
 			// Echo all incoming data.
-			io.Copy(c, c)
+			io.Copy(u.Conn, u.Conn)
 			// Shut down the connection.
-			c.Close()
-		}(conn)
+			u.Conn.Close()
+		}(u)
 	}
 }
