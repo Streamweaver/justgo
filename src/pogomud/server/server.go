@@ -7,15 +7,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"io"
+	"net"
 )
 
-type JsonObject struct {
-	Server ServerInfo
-}
-
-type ServerInfo struct {
+type ServerObject struct {
 	Name string
 	Protocol string
+	Host string
 	Port int
 	BufferLimit int
 	Database DatabaseInfo
@@ -31,7 +30,7 @@ type DatabaseInfo struct {
 }
 
 // Loads config information from JSON file.
-func LoadSettings() JsonObject {
+func NewServer() ServerObject {
 
 	// Load json file with config information.
 	file, e := ioutil.ReadFile("./config.json")
@@ -41,7 +40,7 @@ func LoadSettings() JsonObject {
 	}
 
 	// Parse file info into data
-	var data JsonObject
+	var data ServerObject
 	e = json.Unmarshal(file, &data)
 	if e != nil {
 		fmt.Println("error parsing json: ", e)
@@ -49,30 +48,42 @@ func LoadSettings() JsonObject {
 	}
 
 	// Return it all
-	fmt.Printf("%+v\n", data)
+	//fmt.Printf("%+v\n", data)
 	return data
 }
 
-// func StartServer() {
-// 	// Listen on TCP port 2000 on all interfaces.
-// 	l, err := net.Listen("tcp", ":4201")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	for {
-// 		// Wait for a connection. 
-// 		conn, err := l.Accept()
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		// Handle the connection in a new goroutine.
-// 		// The loop then returns to accepting, so that
-// 		// multiple connections may be served concurrently.
-// 		go func(c net.Conn) {
-// 			// Echo all incoming data.
-// 			io.Copy(c, c)
-// 			// Shut down the connection.
-// 			c.Close()
-// 		}(conn)
-// 	}
-// }
+func (server *ServerObject)Start() {
+	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(server.Host, fmt.Sprintf("%d", server.Port)))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	l, err := net.ListenTCP(server.Protocol, addr)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	fmt.Printf("%s server started and listening on port %d.\n", server.Name, server.Port)
+
+	// Accept connections here.
+	for {
+		// Wait for a connection. 
+		conn, err := l.Accept()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+		conn.Write([]byte("Welcome to " + server.Name + "!\n"))
+		fmt.Printf("Connection made from %s\n", conn.RemoteAddr())
+
+		// Spawn a new connection and go back to listening.
+		go func(c net.Conn) {
+			// Echo all incoming data.
+			io.Copy(c, c)
+			// Shut down the connection.
+			c.Close()
+		}(conn)
+	}
+}
