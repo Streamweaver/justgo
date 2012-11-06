@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"io"
 	"net"
 	"pogomud/user"
 )
@@ -54,12 +53,17 @@ func NewServer() ServerObject {
 }
 
 func (server *ServerObject)Start() {
+	// Setup stuff to handle user communication.
+	userList := make(map[int]user.User)
+	in := make(chan string)
+	go IOHandler(in, userList)
+
+	// Setup the server and get it listening.
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(server.Host, fmt.Sprintf("%d", server.Port)))
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-
 	l, err := net.ListenTCP(server.Protocol, addr)
 	if err != nil {
 		log.Fatal(err)
@@ -68,7 +72,8 @@ func (server *ServerObject)Start() {
 
 	fmt.Printf("%s server started and listening on port %d.\n", server.Name, server.Port)
 
-	// Accept connections here.
+
+	// Listen for and accept user connections.
 	for {
 		// Wait for a connection. 
 		conn, err := l.AcceptTCP()
@@ -76,16 +81,21 @@ func (server *ServerObject)Start() {
 			log.Fatal(err)
 			return
 		}
-		u := user.NewUser(1, conn)
-		u.Write("Welcome to " + server.Name + "!\n")
-		fmt.Printf("Connection for user %d made from %s\n", u.Id, u.Conn.RemoteAddr())
+		
+		user.UserHandler(conn, in, userList)
+		//u.Write("Welcome to " + server.Name + "!\n")
+		//fmt.Printf("Connection for user %d made from %s\n", u.Id, u.Conn.RemoteAddr())
 
-		// Spawn a new connection and go back to listening.
-		go func(u *user.User) {
-			// Echo all incoming data.
-			io.Copy(u.Conn, u.Conn)
-			// Shut down the connection.
-			u.Conn.Close()
-		}(u)
+		// Spawn a new user handler.
+		 
+	}
+}
+
+func IOHandler(Incoming <-chan string, userList map[int]user.User) {
+	for {
+		input := <-Incoming
+		for key := range userList {
+			userList[key].Incoming <- input
+		}
 	}
 }
