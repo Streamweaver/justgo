@@ -3,21 +3,42 @@
 // but still seem to act like it.
 package main 
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+	"math/rand"
+	)
 
-func mapDancer(prefix string, m map[string]int, max int) {
-	for i := 0; i < max; i++ {
-		key := prefix + string(i)
-		m[key] = 0
+func mapDancer(prefix string, m map[string]int, ch chan string) {
+	for i := 0; i < 10; i++ {
+		time.Sleep(time.Second * time.Duration(rand.Intn(10)))
+		key := fmt.Sprintf("%s%d", prefix, i)
+		value := i * 10
+		m[key] = value
+		ch <- fmt.Sprintf("Wrote %s with value %d", key, value)
+		fmt.Printf("--->thisMap has %d elements.\n", len(m))
+	}
+}
+
+func printChan(ch chan string) {
+	for {
+		msg := <- ch
+		fmt.Println(msg)
 	}
 }
 
 func main() {
 	thisMap := make(map[string]int)
-	mapDancer("one", thisMap, 10)
-	fmt.Printf("Map is %d long.\n", len(thisMap))
-	mapDancer("two", thisMap, 10)
-	fmt.Printf("Map is %d long.\n", len(thisMap))
-	mapDancer("three", thisMap, 10)
-	fmt.Printf("Map is %d long.\n", len(thisMap))
+	ch := make(chan string)
+
+	go mapDancer("Bob", thisMap, ch)
+	go mapDancer("John", thisMap, ch)
+	go mapDancer("Tom", thisMap, ch)
+
+	go printChan(ch)
+
+	var input string
+	fmt.Scanln(&input)
+
+	fmt.Printf("thisMap has %d elements.\n", len(thisMap))
 }
