@@ -48,14 +48,14 @@ func (u *User) Destroy() {
 }
 
 // Handle User Communications.
-func UserReader(user *User) {
+func Broadcaster(user *User) {
 	buffer := make([]byte, 2048)
 	for user.Read(buffer) {
 		user.Outgoing <- user.Name + ": " + string(buffer)
 	}
 }
 
-func UserSender(user *User) {
+func Reciever(user *User) {
     for {
         select {
             case buffer := <-user.Incoming:    
@@ -67,13 +67,18 @@ func UserSender(user *User) {
     }
 }
 
-func UserHandler(conn *net.TCPConn, out chan string, userList map[int]User) {
+func nameSetter(conn *net.TCPConn) string {
+	conn.Write([]byte("Enter a name to use: "))
 	buffer := make([]byte, 2048)
-	bRead, err := conn.Read(buffer) // Read from connection into that buffer.
+	bRead, err := conn.Read(buffer)
 	if err != nil {
 		log.Fatal(err)
 	}
-	name := string(buffer[0:bRead])
+	return string(buffer[0:bRead])
+}
+
+func UserHandler(conn *net.TCPConn, out chan string, userList map[int]User) {
+	name := nameSetter(conn)
 	newUser := User{
 		len(userList),
 		name,
@@ -84,7 +89,7 @@ func UserHandler(conn *net.TCPConn, out chan string, userList map[int]User) {
 		userList,
 	}
 	userList[newUser.Id] = newUser
-	go UserReader(&newUser)
-	go UserSender(&newUser)
-	out <-string(name + " has connected.")
+	go Broadcaster(&newUser)
+	go Reciever(&newUser)
+	out <-string(name + " has connected.\n")
 }
