@@ -37,7 +37,7 @@ func main() {
 
 	go printChan(ch)
 
-	var name string
+	var input string
 	fmt.Scanln(&input)
 
 	fmt.Printf("thisMap has %d elements.\n", len(thisMap))

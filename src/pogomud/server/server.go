@@ -9,15 +9,26 @@ import (
 	"log"
 	"net"
 	"pogomud/user"
+	"time"
 )
+type Message struct {
+	userID int
+	content string
+	targetID int
+}
+
+func NewMessage(userID int, content string, targetID int) Message {
+	return Message{userID, content, targetID}
+}
 
 type ServerObject struct {
-	Name string
-	Protocol string
-	Host string
-	Port int
-	BufferLimit int
-	Database DatabaseInfo
+	Name string // Name of the MUD server.
+	Protocol string  // Type of TCP protocol to use.
+	Host string  // IP or DNS of host.
+	Port int // Port to run on.
+	BufferLimit int // Buffer size limit to use.
+	Database DatabaseInfo // Database connection information.
+	Offline bool // Put the server online or offline
 }
 
 type DatabaseInfo struct {
@@ -46,19 +57,20 @@ func NewServer() ServerObject {
 		fmt.Println("error parsing json: ", e)
 		log.Fatal(e)
 	}
-
+	data.Offline := true
 	// Return it all
 	//fmt.Printf("%+v\n", data)
 	return data
 }
 
+// Creates a server on the host address and port and opens it for connections.
 func (server *ServerObject)Start() {
 	// Setup stuff to handle user communication.
 	userList := make(map[int]user.User)
-	in := make(chan string)
+	in := make(chan Message)
 	go IOHandler(in, userList)
 
-	// Setup the server and get it listening.
+	// Setup the server address and listener.
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(server.Host, fmt.Sprintf("%d", server.Port)))
 	if err != nil {
 		log.Fatal(err)
@@ -72,30 +84,35 @@ func (server *ServerObject)Start() {
 
 	fmt.Printf("%s server started and listening on port %d.\n", server.Name, server.Port)
 
-
+	server.Offline = false
 	// Listen for and accept user connections.
 	for {
+		// Code to shutdown server.
+		if server.Offline {
+			fmt.Printf("Shutting server down in 30 seconds!")
+			time.Sleep(time.Second * 30)
+			break
+		}
 		// Wait for a connection. 
 		conn, err := l.AcceptTCP()
 		if err != nil {
 			log.Fatal(err)
 			return
-		}
-		
-		user.UserHandler(conn, in, userList)
-		//u.Write("Welcome to " + server.Name + "!\n")
-		//fmt.Printf("Connection for user %d made from %s\n", u.Id, u.Conn.RemoteAddr())
-
-		// Spawn a new user handler.
-		 
+		} 
+		// More code here for what to do.
 	}
 }
 
-func IOHandler(Incoming <-chan string, userList map[int]user.User) {
+func IOHandler(Incoming <-chan Message, userList map[int]user.User) {
 	for {
 		input := <-Incoming
+		if input.targetId > 0 {
+			userList[input.userId].Incoming <- input.content
+		}
 		for key := range userList {
-			userList[key].Incoming <- input
+			if key != input.userID {
+				userList[key].Incoming <- input
+			}
 		}
 	}
 }
