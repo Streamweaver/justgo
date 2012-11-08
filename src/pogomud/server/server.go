@@ -8,16 +8,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"pogomud/user"
 )
 type Message struct {
-	userID int
+	name string
 	content string
-	targetID int
 }
 
-func NewMessage(userID int, content string, targetID int) Message {
-	return Message{userID, content, targetID}
+func NewMessage(name string, content string) Message {
+	return Message{name, content}
 }
 
 type ServerObject struct {
@@ -39,11 +37,11 @@ type DatabaseInfo struct {
 	Engine string // Type of Database being connected to.
 }
 
-// Loads config information from JSON file.
+// Loads config information from JSON file into a Server Object
 func NewServer() ServerObject {
 
 	// Load json file with config information.
-	file, e := ioutil.ReadFile("./config.json")
+	file, e := ioutil.ReadFile("config.json")
 	if e != nil {
 		fmt.Printf("%s\n", e)
 		log.Fatal(e)
@@ -64,10 +62,6 @@ func NewServer() ServerObject {
 
 // Creates a server on the host address and port and opens it for connections.
 func (server *ServerObject)Start() {
-	// Setup stuff to handle user communication.
-	userList := make(map[int]user.User)
-	in := make(chan string)
-	go IOHandler(in, userList)
 
 	// Setup the server address and listener.
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(server.Host, fmt.Sprintf("%d", server.Port)))
@@ -81,6 +75,12 @@ func (server *ServerObject)Start() {
 		return
 	}
 
+	// Setup stuff to handle user communication.
+	userList := make(map[string]User)
+	msgQueue := make(chan Message)
+	// Startup a Message Handler to route message to users.
+	go MessageHandler(msgQueue, userList)
+
 	fmt.Printf("%s server started and listening on port %d.\n", server.Name, server.Port)
 
 	// Listen for and accept user connections.
@@ -92,15 +92,17 @@ func (server *ServerObject)Start() {
 			return
 		} 
 		// More code here for what to do.
-		user.HandleUser(conn, in, userList)
+		HandleUser(conn, msgQueue, userList)
 	}
 }
 
-func IOHandler(Incoming <-chan string, userList map[int]user.User) {
+func MessageHandler(msgQueue <-chan Message, userList map[string]User) {
 	for {
-		input := <-Incoming
+		msg := <-msgQueue
 		for key := range userList {
-			userList[key].Incoming <- input
+			if key != msg.name {
+				userList[key].toUser <- msg
+			}
 		}
 	}
 }

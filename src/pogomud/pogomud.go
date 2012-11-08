@@ -1,4 +1,4 @@
-// file gomud/gomud.go - Entry point for GoMu
+// file gomud/gomud.go - Entry point for PoGoMud
 package main
 
 import (
