@@ -3,6 +3,7 @@
 *.a
 *.so
 *.exe
+*.sublime-*
 
 # Directories to Ignore
 bin/
