@@ -9,7 +9,6 @@ import (
 	"log"
 	"net"
 	"pogomud/user"
-	"time"
 )
 type Message struct {
 	userID int
@@ -28,8 +27,8 @@ type ServerObject struct {
 	Port int // Port to run on.
 	BufferLimit int // Buffer size limit to use.
 	Database DatabaseInfo // Database connection information.
-	Offline bool // Put the server online or offline
 }
+
 
 type DatabaseInfo struct {
 	Host string // Hostname of Database
@@ -57,7 +56,7 @@ func NewServer() ServerObject {
 		fmt.Println("error parsing json: ", e)
 		log.Fatal(e)
 	}
-	data.Offline := true
+	
 	// Return it all
 	//fmt.Printf("%+v\n", data)
 	return data
@@ -67,7 +66,7 @@ func NewServer() ServerObject {
 func (server *ServerObject)Start() {
 	// Setup stuff to handle user communication.
 	userList := make(map[int]user.User)
-	in := make(chan Message)
+	in := make(chan string)
 	go IOHandler(in, userList)
 
 	// Setup the server address and listener.
@@ -84,15 +83,8 @@ func (server *ServerObject)Start() {
 
 	fmt.Printf("%s server started and listening on port %d.\n", server.Name, server.Port)
 
-	server.Offline = false
 	// Listen for and accept user connections.
 	for {
-		// Code to shutdown server.
-		if server.Offline {
-			fmt.Printf("Shutting server down in 30 seconds!")
-			time.Sleep(time.Second * 30)
-			break
-		}
 		// Wait for a connection. 
 		conn, err := l.AcceptTCP()
 		if err != nil {
@@ -100,19 +92,15 @@ func (server *ServerObject)Start() {
 			return
 		} 
 		// More code here for what to do.
+		user.HandleUser(conn, in, userList)
 	}
 }
 
-func IOHandler(Incoming <-chan Message, userList map[int]user.User) {
+func IOHandler(Incoming <-chan string, userList map[int]user.User) {
 	for {
 		input := <-Incoming
-		if input.targetId > 0 {
-			userList[input.userId].Incoming <- input.content
-		}
 		for key := range userList {
-			if key != input.userID {
-				userList[key].Incoming <- input
-			}
+			userList[key].Incoming <- input
 		}
 	}
 }

@@ -4,58 +4,36 @@ package user
 import (
 	"net"
 	"log"
+	"bufio"
 )
 
 type User struct {
 	Id int
 	Name string
 	Conn *net.TCPConn
-	Incoming chan string
 	Outgoing chan string
-	Quit chan bool
-	UserList map[int]User
 }
 
-func (u *User) Write(s string) {
-	u.Conn.Write([]byte(s))
-}
-
-func (u *User) Read(buffer []byte) bool {
-	_, err := u.Conn.Read(buffer)
-	if err != nil {
-		u.Close()
-		log.Fatal(err)
-		return false
-	}
-	return true
-}
-
-func (u *User) IsMe(other *User) bool {
-	if u.Id == other.Id{
-		return true
-	}
-	return false
-}
-
+// Closes the connection and preforms anything needed with it.
 func (u *User) Close() {
-	u.Quit <- true
-	u.Conn.Close()
-	u.Destroy()
+	//
 }
 
+// Removes the user from the server userlist.
 func (u *User) Destroy() {
-	delete(u.UserList, u.Id)
+	//
 }
 
-// Handle User Communications.
-func Broadcaster(user *User) {
-	buffer := make([]byte, 2048)
-	for user.Read(buffer) {
-		user.Outgoing <- user.Name + ": " + string(buffer)
+// Listends to the users Outgoing channel and sends
+// new values to the connection.
+func MessageSender(user *User) {
+	for {
+		msg := <- user.Outgoing
+		user.Conn.Write([]bytes(msg))
 	}
 }
 
-func Reciever(user *User) {
+func MessageListener(user *User) {
     for {
         select {
             case buffer := <-user.Incoming:    
@@ -69,15 +47,16 @@ func Reciever(user *User) {
 
 func nameSetter(conn *net.TCPConn) string {
 	conn.Write([]byte("Enter a name to use: "))
-	buffer := make([]byte, 2048)
-	bRead, err := conn.Read(buffer)
+	r := bufio.NewReader(conn)
+	line, err := r.ReadString(byte('\n'))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(buffer[0:bRead])
+	
+	return line
 }
 
-func UserHandler(conn *net.TCPConn, out chan string, userList map[int]User) {
+func HandleUser(conn *net.TCPConn, out chan string, userList map[int]User) {
 	name := nameSetter(conn)
 	newUser := User{
 		len(userList),
