@@ -5,6 +5,8 @@ import (
 	"net"
 	"log"
 	"bufio"
+	"strings"
+	"fmt"
 )
 
 type User struct {
@@ -41,7 +43,7 @@ func HandleToServer(user *User) {
 func HandleToUser(user *User) {
 	for {
 		msg := <- user.toUser
-		text := msg.name + ": " + msg.content + "\n"
+		text := "(" + msg.name + "): " + msg.content + "\n"
 		user.Conn.Write([]byte(text))
 	}
 }
@@ -51,10 +53,11 @@ func nameSetter(conn *net.TCPConn) string {
 	r := bufio.NewReader(conn)
 	line, err := r.ReadString('\n')
 	if err != nil {
+		fmt.Printf("Error reading name string: %s", err)
 		log.Fatal(err)
 	}
 	
-	return line
+	return strings.Trim(line, " \n")
 }
 
 // type User struct {
