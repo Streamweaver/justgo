@@ -1,7 +1,7 @@
 // Just a quick method to test map deletes across go routines.
 // having some trouble conceptualizing maps that aren't passed as pointers
 // but still seem to act like it.
-package main 
+package main
 
 import (
 	"fmt"
